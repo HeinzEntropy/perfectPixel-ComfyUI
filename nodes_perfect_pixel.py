@@ -42,24 +42,38 @@ def _load_backend(backend: str):
       - "Lightweight Backend"
     returns: get_perfect_pixel callable
     """
+    def _import_noCV2():
+        """Try package import first, fallback to local"""
+        try:
+            from perfect_pixel.perfect_pixel_noCV2 import get_perfect_pixel
+            return get_perfect_pixel
+        except ImportError:
+            from .perfect_pixel_noCV2 import get_perfect_pixel
+            return get_perfect_pixel
+
+    def _import_cv2():
+        """Try package import first, fallback to local"""
+        try:
+            from perfect_pixel.perfect_pixel import get_perfect_pixel
+            return get_perfect_pixel
+        except ImportError:
+            from .perfect_pixel import get_perfect_pixel
+            return get_perfect_pixel
+
     if backend == "Lightweight Backend":
-        from .perfect_pixel_noCV2 import get_perfect_pixel
-        return get_perfect_pixel
+        return _import_noCV2()
 
     if backend == "OpenCV Backend":
-        # hard-require cv2
         import cv2  # noqa: F401
-        from .perfect_pixel import get_perfect_pixel
-        return get_perfect_pixel
+        return _import_cv2()
 
     # Auto: prefer OpenCV if available, else fallback
     try:
         import cv2  # noqa: F401
-        from .perfect_pixel import get_perfect_pixel
-        return get_perfect_pixel
+        return _import_cv2()
     except Exception:
-        from .perfect_pixel_noCV2 import get_perfect_pixel
-        return get_perfect_pixel
+        return _import_noCV2()
+
 
 
 class PerfectPixelNode:
